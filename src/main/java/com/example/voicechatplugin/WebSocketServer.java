@@ -1,4 +1,4 @@
-Package com.example.voicechatplugin;
+package com.example.voicechatplugin;
 
 import org.java_websocket.server.WebSocketServer;
 import org.java_websocket.handshake.ClientHandshake;
