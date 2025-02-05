@@ -15,8 +15,8 @@
   <repositories>
     <!-- JitPack repository for Spigot API -->
     <repository>
-      <id>jitpack</id>
-      <url>https://jitpack.io</url>
+      <id>spigot-repo</id>
+        <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
     </repository>
     <!-- VoiceChat API repository -->
     <repository>
@@ -28,10 +28,10 @@
   <dependencies>
     <!-- Spigot API -->
     <dependency>
-      <groupId>org.bukkit</groupId>
-      <artifactId>spigot-api</artifactId>
-      <version>1.20.1-R0.1-SNAPSHOT</version>
-      <scope>provided</scope>
+           <groupId>org.spigotmc</groupId>
+           <artifactId>spigot-api</artifactId>
+           <version>1.20.1-R0.1-SNAPSHOT</version>
+           <scope>provided</scope>
     </dependency>
 
     <!-- Voicechat API -->
