@@ -20,21 +20,21 @@ jobs:
         uses: actions/setup-java@v4
         with:
           java-version: '17'
-          distribution: 'temurin'
+          distrubution: 'temurin'
 
-      - name: Cache Gradle dependencies
+      - name: Cache Maven dependencies
         uses: actions/cache@v4
         with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/build.gradle') }}
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
-            ${{ runner.os }}-gradle-
+            ${{ runner.os }}-maven-
 
-      - name: Build with Gradle
-        run: ./gradlew build -x test
+      - name: Build with Maven
+        run: mvn clean package -DskipTests
 
       - name: Upload JAR to Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: voicechat-plugin
-          path: build/libs/*.jar
+          path: target/*.jar
