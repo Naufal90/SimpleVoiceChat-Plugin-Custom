@@ -1,0 +1,5 @@
+dependencies {
+ implementation 'de.maxhenkel.voicechat:voicechat-api:2.4.22'
+        'org.java-websocket:Java-WebSocket:1.5.3' // Sesuaikan dengan versi terbaru
+            compileOnly 'org.spigotmc:spigot-api:1.20.1-R0.1-SNAPSHOT' // Sesuaikan dengan versi server Minecraft
+            }
