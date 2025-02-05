@@ -21,7 +21,7 @@
     <!-- VoiceChat API repository -->
     <repository>
       <id>maxhenkel-repo</id>
-      <url>https://maven.maxhenkel.de/repository/voicechat/</url>
+      <url>https://maven.maxhenkel.de/#/releases/de/maxhenkel/voicechat/voicechat-api</url>
     </repository>
   </repositories>
 
