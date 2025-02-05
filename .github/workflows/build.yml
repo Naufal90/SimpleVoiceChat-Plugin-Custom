@@ -1,0 +1,39 @@
+name: Build and Deploy Plugin
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v2
+        with:
+          java-version: '17'
+
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v2
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/build.gradle') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Build with Gradle
+        run: ./gradlew build -x test
+
+      - name: Upload JAR to Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: voicechat-plugin
+          path: build/libs/*.jar
