@@ -1,8 +1,10 @@
 package com.example.voicechatplugin;
 
 import de.maxhenkel.voicechat.api.VoicechatApi;
+import de.maxhenkel.voicechat.api.VoicechatServer;
 import de.maxhenkel.voicechat.api.ServerPlayer;
-import de.maxhenkel.voicechat.api.ServerGroup;
+import de.maxhenkel.voicechat.api.Group;
+import de.maxhenkel.voicechat.api.GroupManager;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -26,7 +28,8 @@ public class VoiceChatCommand implements CommandExecutor {
         }
 
         Player player = (Player) sender;
-        ServerPlayer serverPlayer = api.getPlayerManager().getPlayer(player.getUniqueId()).orElse(null);
+        VoicechatServer voiceServer = api.getVoicechatServer();
+        ServerPlayer serverPlayer = voiceServer.getPlayer(player.getUniqueId()).orElse(null);
 
         if (serverPlayer == null) {
             player.sendMessage("Gagal mendapatkan data pemain.");
@@ -43,13 +46,13 @@ public class VoiceChatCommand implements CommandExecutor {
 
         switch (action) {
             case "create":
-                createVoiceGroup(serverPlayer, groupName);
+                createVoiceGroup(voiceServer, serverPlayer, player, groupName);
                 break;
             case "join":
-                joinVoiceGroup(serverPlayer, groupName);
+                joinVoiceGroup(voiceServer, serverPlayer, player, groupName);
                 break;
             case "leave":
-                leaveVoiceGroup(serverPlayer);
+                leaveVoiceGroup(voiceServer, serverPlayer, player);
                 break;
             default:
                 player.sendMessage("Perintah tidak dikenal! Gunakan: /voicechat [create|join|leave] [nama_grup]");
@@ -59,41 +62,38 @@ public class VoiceChatCommand implements CommandExecutor {
         return true;
     }
 
-    private void createVoiceGroup(ServerPlayer player, String groupName) {
-        Optional<ServerGroup> existingGroup = api.getGroupManager().getGroups().stream()
-                .filter(g -> g.getName().equalsIgnoreCase(groupName))
-                .findFirst();
+    private void createVoiceGroup(VoicechatServer voiceServer, ServerPlayer serverPlayer, Player player, String groupName) {
+        GroupManager groupManager = voiceServer.getGroupManager();
 
-        if (existingGroup.isPresent()) {
+        if (groupManager.groupExists(groupName)) {
             player.sendMessage("Grup " + groupName + " sudah ada!");
             return;
         }
 
-        ServerGroup newGroup = api.getGroupManager().createGroup(groupName);
-        api.getGroupManager().addPlayerToGroup(player, newGroup);
+        Group newGroup = groupManager.createGroup(groupName, serverPlayer);
+        serverPlayer.setGroup(newGroup);
         player.sendMessage("Grup suara " + groupName + " berhasil dibuat!");
 
         notifyWebSocket(player.getName() + " membuat grup suara: " + groupName);
     }
 
-    private void joinVoiceGroup(ServerPlayer player, String groupName) {
-        Optional<ServerGroup> group = api.getGroupManager().getGroups().stream()
-                .filter(g -> g.getName().equalsIgnoreCase(groupName))
-                .findFirst();
+    private void joinVoiceGroup(VoicechatServer voiceServer, ServerPlayer serverPlayer, Player player, String groupName) {
+        GroupManager groupManager = voiceServer.getGroupManager();
+        Optional<Group> group = groupManager.getGroup(groupName);
 
         if (group.isEmpty()) {
             player.sendMessage("Grup " + groupName + " tidak ditemukan!");
             return;
         }
 
-        api.getGroupManager().addPlayerToGroup(player, group.get());
+        serverPlayer.setGroup(group.get());
         player.sendMessage("Anda telah bergabung ke grup suara " + groupName);
 
         notifyWebSocket(player.getName() + " bergabung ke grup suara: " + groupName);
     }
 
-    private void leaveVoiceGroup(ServerPlayer player) {
-        api.getGroupManager().removePlayerFromAllGroups(player);
+    private void leaveVoiceGroup(VoicechatServer voiceServer, ServerPlayer serverPlayer, Player player) {
+        serverPlayer.setGroup(null);
         player.sendMessage("Anda telah keluar dari semua grup suara!");
 
         notifyWebSocket(player.getName() + " keluar dari semua grup suara");
@@ -104,4 +104,4 @@ public class VoiceChatCommand implements CommandExecutor {
             Main.webSocketServer.broadcastMessage(message);
         }
     }
-}
+            }
