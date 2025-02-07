@@ -4,7 +4,6 @@ import de.maxhenkel.voicechat.api.VoicechatApi;
 import de.maxhenkel.voicechat.api.VoicechatServer;
 import de.maxhenkel.voicechat.api.ServerPlayer;
 import de.maxhenkel.voicechat.api.Group;
-import de.maxhenkel.voicechat.api.GroupManager;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -14,10 +13,10 @@ import java.util.Optional;
 
 public class VoiceChatCommand implements CommandExecutor {
 
-    private final VoicechatApi api;
+    private final Main plugin;
 
-    public VoiceChatCommand(VoicechatApi api) {
-        this.api = api;
+    public VoiceChatCommand(Main plugin) {
+        this.plugin = plugin;
     }
 
     @Override
@@ -28,6 +27,12 @@ public class VoiceChatCommand implements CommandExecutor {
         }
 
         Player player = (Player) sender;
+        VoicechatApi api = plugin.getApi();
+        if (api == null) {
+            player.sendMessage("API Voice Chat tidak tersedia!");
+            return true;
+        }
+
         VoicechatServer voiceServer = api.getVoicechatServer();
         ServerPlayer serverPlayer = voiceServer.getPlayer(player.getUniqueId()).orElse(null);
 
@@ -52,7 +57,7 @@ public class VoiceChatCommand implements CommandExecutor {
                 joinVoiceGroup(voiceServer, serverPlayer, player, groupName);
                 break;
             case "leave":
-                leaveVoiceGroup(voiceServer, serverPlayer, player);
+                leaveVoiceGroup(serverPlayer, player);
                 break;
             default:
                 player.sendMessage("Perintah tidak dikenal! Gunakan: /voicechat [create|join|leave] [nama_grup]");
@@ -63,24 +68,21 @@ public class VoiceChatCommand implements CommandExecutor {
     }
 
     private void createVoiceGroup(VoicechatServer voiceServer, ServerPlayer serverPlayer, Player player, String groupName) {
-        GroupManager groupManager = voiceServer.getGroupManager();
-
-        if (groupManager.groupExists(groupName)) {
+        Optional<Group> existingGroup = voiceServer.getGroup(groupName);
+        if (existingGroup.isPresent()) {
             player.sendMessage("Grup " + groupName + " sudah ada!");
             return;
         }
 
-        Group newGroup = groupManager.createGroup(groupName, serverPlayer);
+        Group newGroup = voiceServer.createGroup(groupName, serverPlayer);
         serverPlayer.setGroup(newGroup);
         player.sendMessage("Grup suara " + groupName + " berhasil dibuat!");
 
-        notifyWebSocket(player.getName() + " membuat grup suara: " + groupName);
+        plugin.getWebSocketServer().broadcastMessage(player.getName() + " membuat grup suara: " + groupName);
     }
 
     private void joinVoiceGroup(VoicechatServer voiceServer, ServerPlayer serverPlayer, Player player, String groupName) {
-        GroupManager groupManager = voiceServer.getGroupManager();
-        Optional<Group> group = groupManager.getGroup(groupName);
-
+        Optional<Group> group = voiceServer.getGroup(groupName);
         if (group.isEmpty()) {
             player.sendMessage("Grup " + groupName + " tidak ditemukan!");
             return;
@@ -89,19 +91,13 @@ public class VoiceChatCommand implements CommandExecutor {
         serverPlayer.setGroup(group.get());
         player.sendMessage("Anda telah bergabung ke grup suara " + groupName);
 
-        notifyWebSocket(player.getName() + " bergabung ke grup suara: " + groupName);
+        plugin.getWebSocketServer().broadcastMessage(player.getName() + " bergabung ke grup suara: " + groupName);
     }
 
-    private void leaveVoiceGroup(VoicechatServer voiceServer, ServerPlayer serverPlayer, Player player) {
+    private void leaveVoiceGroup(ServerPlayer serverPlayer, Player player) {
         serverPlayer.setGroup(null);
         player.sendMessage("Anda telah keluar dari semua grup suara!");
 
-        notifyWebSocket(player.getName() + " keluar dari semua grup suara");
-    }
-
-    private void notifyWebSocket(String message) {
-        if (Main.webSocketServer != null) {
-            Main.webSocketServer.broadcastMessage(message);
-        }
+        plugin.getWebSocketServer().broadcastMessage(player.getName() + " keluar dari semua grup suara");
     }
             }
