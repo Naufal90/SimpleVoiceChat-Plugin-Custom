@@ -1,13 +1,17 @@
-name: SimpleVoiceChatPlugin
-version: 1.0
+name: VoiceChatPlugin
 main: com.example.voicechatplugin.Main
+version: 1.0
+author: Naufal90
 api-version: 1.20
+depend: [voicechat]
+
 commands:
   voicechat:
-      description: Mengelola grup voice chat
-          usage: /voicechat [create|join|leave|list] [nama_grup]
-              permission: voicechat.use
-              permissions:
-                voicechat.use:
-                    description: Izin untuk menggunakan voice chat
-                        default: true
+    description: Mengelola grup voice chat
+    usage: /voicechat [create|join|leave] [nama_grup]
+    permission: voicechatplugin.use
+
+permissions:
+  voicechatplugin.use:
+    description: Izinkan pemain menggunakan perintah voice chat
+    default: true
