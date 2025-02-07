@@ -2,14 +2,9 @@ package com.example.voicechatplugin;
 
 import de.maxhenkel.voicechat.api.VoicechatPlugin;
 import de.maxhenkel.voicechat.api.VoicechatApi;
-import de.maxhenkel.voicechat.api.VoicechatServer;
 import de.maxhenkel.voicechat.api.ServerPlayer;
-import de.maxhenkel.voicechat.api.Group;
-import de.maxhenkel.voicechat.api.GroupManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.command.PluginCommand;
-
-import java.util.Optional;
 
 public class Main extends JavaPlugin implements VoicechatPlugin {
 
@@ -20,10 +15,10 @@ public class Main extends JavaPlugin implements VoicechatPlugin {
         getLogger().info("SimpleVoiceChat Custom Plugin Aktif!");
 
         PluginCommand voiceChatCommand = getCommand("voicechat");
-        if (voiceChatCommand != null && api != null) {
-            voiceChatCommand.setExecutor(new VoiceChatCommand(api));
+        if (voiceChatCommand != null) {
+            voiceChatCommand.setExecutor(new VoiceChatCommand(this));
         } else {
-            getLogger().warning("Gagal mendaftarkan perintah /voicechat! API belum tersedia.");
+            getLogger().warning("Gagal mendaftarkan perintah /voicechat!");
         }
     }
 
@@ -49,25 +44,6 @@ public class Main extends JavaPlugin implements VoicechatPlugin {
         api.getEventRegistry().registerVoiceChatDisconnectedListener(event -> {
             getLogger().info(event.getPlayer().getName() + " keluar dari voice chat.");
         });
-    }
-
-    public void createVoiceGroup(ServerPlayer player, String groupName) {
-        if (api == null) {
-            getLogger().warning("API belum diinisialisasi!");
-            return;
-        }
-
-        VoicechatServer voiceServer = api.getVoicechatServer();
-        GroupManager groupManager = voiceServer.getGroupManager();
-
-        if (groupManager.groupExists(groupName)) {
-            player.getPlayer().sendMessage("Grup " + groupName + " sudah ada!");
-            return;
-        }
-
-        Group newGroup = groupManager.createGroup(groupName, player);
-        player.setGroup(newGroup);
-        player.getPlayer().sendMessage("Grup suara " + groupName + " berhasil dibuat!");
     }
 
     public VoicechatApi getApi() {
